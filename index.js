@@ -1,8 +1,13 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const { resolve } = require('path');
+
+dotenv.config({ path: './.env' });
 
 const app = express();
 const port = 3010;
+let url = `${process.env.STOCK_API}&?apikey=${process.env.STOCK_TOKEN}&symbol=${process.env.STOCK_TOKEN}`
+//${stockDateQueryParams}`;
 
 app.use(express.static('static'));
 
@@ -17,8 +22,30 @@ app.get('/amount', (req, res) => {
       message: 'please include both stock and amount inputs.'
     });
   } else {
+    let stock = req.query.stock;
 
-    
+    fetch(url).then(async (res) => {
+      let returns = res.body.pipeThrough(new TextDecoderStream()).getReader();
+
+      while (true) {
+        const { value, done } = await returns.read();
+        if (done) break;
+        arr = JSON.parse(value);
+      }
+
+      arr = arr.map((x) => {
+        return {
+          date: x.priceDate,
+          symbol: x.symbol,
+          price: x.close,
+          returns: (x.close - x.open).toFixed(2)
+        }
+      });
+    });
+
+    //.split(',')
+
+
     //pull or format stock given in query
     //format url and fetch data
     //calculate 
