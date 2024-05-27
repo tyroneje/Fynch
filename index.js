@@ -82,6 +82,40 @@ app.get('/amount', (req, res) => {
         }
       }
 
+      //calculate payout term
+      let dividend_lapse = (dividend_list) => {
+        let div_span = 0;
+        let b = 1;
+        for (let index = 0; index < array.length - 2; index++) {
+          let prev_div = new Date(array[index]['date']).getMonth() + 1;
+          let post_div = new Date(array[b]['date']).getMonth() + 1;
+          let span = prev_div - post_div;
+
+          if (span == 0) continue;
+          else {
+            if (span > div_span) {
+              div_span = span;
+            }
+          }
+        }
+        return div_span;
+      }
+
+      let getPayoutTerm = (lapse_amount) => {
+        switch (gap) {
+          case 1:
+            return 12;
+          case 3:
+            return 4;
+          case 6:
+            return 2;
+          default:
+            break;
+        }
+      }
+
+      let payout = getPayoutTerm(dividend_lapse(current_year_monthly_dividends));
+
       console.log(company_adjusted_returns);
       console.log(current_year_monthly_dividends);
 
