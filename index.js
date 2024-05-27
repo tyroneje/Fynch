@@ -14,7 +14,7 @@ let symbol = (tix) => `symbol=${tix}`;
 let company_fx = 'function=OVERVIEW';
 let stock_data_fx = 'function=TIME_SERIES_MONTHLY_ADJUSTED';
 let bob = {};
-let bob2 = [];
+let current_year_monthly_dividends = [];
 
 app.use(express.static('static'));
 
@@ -60,21 +60,21 @@ app.get('/amount', (req, res) => {
 
     fetch(blob2).then(async (res1) => {
       let returns = res1.body.pipeThrough(new TextDecoderStream()).getReader();
-      let arr;
+      let company_adjusted_returns;
 
       while (true) {
         const { value, done } = await returns.read();
         if (done) break;
-        arr = JSON.parse(value);
+        company_adjusted_returns = JSON.parse(value);
       }
 
       //get dates and related data for the current year
-      for (const key in arr['Monthly Adjusted Time Series']) {
+      for (const key in company_adjusted_returns['Monthly Adjusted Time Series']) {
         let date = new Date(key);
 
         if (date > new Date(`01/01/${new Date().getFullYear()}`)) {
-          if (arr['Monthly Adjusted Time Series'][key]['7. dividend amount'] > 0.00) {
-            bob2.push({ date: key, ...arr['Monthly Adjusted Time Series'][key] });
+          if (company_adjusted_returns['Monthly Adjusted Time Series'][key]['7. dividend amount'] > 0.00) {
+            current_year_monthly_dividends.push({ date: key, ...company_adjusted_returns['Monthly Adjusted Time Series'][key] });
           }
         }
         else {
@@ -82,10 +82,10 @@ app.get('/amount', (req, res) => {
         }
       }
 
-      console.log(arr);
-      console.log(bob2);
+      console.log(company_adjusted_returns);
+      console.log(current_year_monthly_dividends);
 
-      res.send(bob2);
+      res.send(current_year_monthly_dividends);
     });
 
 
