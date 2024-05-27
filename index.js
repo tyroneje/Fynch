@@ -14,7 +14,7 @@ let symbol = (tix) => `symbol=${tix}`;
 let company_fx = 'function=OVERVIEW';
 let stock_data_fx = 'function=TIME_SERIES_MONTHLY_ADJUSTED';
 let bob = {};
-let bob2 = {}
+let bob2 = [];
 
 app.use(express.static('static'));
 
@@ -23,7 +23,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/amount', (req, res) => {
-  //console.log(req.query);
   if (!req.query.stock || !req.query.amount) {
     console.log('error....');
     res.send({
@@ -32,36 +31,36 @@ app.get('/amount', (req, res) => {
   } else {
 
     let stock = req.query.stock;
-    let blob = url + `?${key}&${company_fx}&${symbol(stock)}`;
-    console.log(blob);
+    //let blob = url + `?${key}&${company_fx}&${symbol(stock)}`;
+    //console.log(blob);
 
-    fetch(blob).then(async (res) => {
-      let returns = res.body.pipeThrough(new TextDecoderStream()).getReader();
-      let arr = [];
+    // fetch(blob).then(async (res) => {
+    //   let returns = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    //   let arr = [];
 
-      while (true) {
-        const { value, done } = await returns.read();
-        if (done) break;
-        bob = JSON.parse(value);
-      }
+    //   while (true) {
+    //     const { value, done } = await returns.read();
+    //     if (done) break;
+    //     bob = JSON.parse(value);
+    //   }
 
-      // bob = (x) => {
-      //   return {
-      //     symbol: x.Symbol,
-      //     dividend: x.DividendPerShare,
-      //     yield: x.DividendYield,
-      //     date:  x.DividendDate,
-      //     exDate: x.ExDividendDate
-      //   }
-      // };
-    });
+    //   // bob = (x) => {
+    //   //   return {
+    //   //     symbol: x.Symbol,
+    //   //     dividend: x.DividendPerShare,
+    //   //     yield: x.DividendYield,
+    //   //     date:  x.DividendDate,
+    //   //     exDate: x.ExDividendDate
+    //   //   }
+    //   // };
+    // });
 
     let blob2 = url + `?${key}&${stock_data_fx}&${symbol(stock)}`;
     console.log(blob2);
 
     fetch(blob2).then(async (res1) => {
       let returns = res1.body.pipeThrough(new TextDecoderStream()).getReader();
-      let arr = [];
+      let arr;
 
       while (true) {
         const { value, done } = await returns.read();
@@ -69,35 +68,24 @@ app.get('/amount', (req, res) => {
         arr = JSON.parse(value);
       }
 
-      bob2 = arr;
+      //get dates and related data for the current year
+      for (const key in arr['Monthly Adjusted Time Series']) {
+        let date = new Date(key);
+
+        if (date > new Date(`01/01/${new Date().getFullYear()}`)) {
+          if (arr['Monthly Adjusted Time Series'][key]['7. dividend amount'] > 0.00) {
+            bob2.push({ date: key, ...arr['Monthly Adjusted Time Series'][key] });
+          }
+        }
+        else {
+          break;
+        }
+      }
+
+      console.log(arr);
       console.log(bob2);
-      let current_year_dividend_months = Object.keys(bob2['Monthly Adjusted Time Series'])
-        .map(date => new Date(date))
-        .filter(date => {
-          let of_this_year = date > new Date(`01/01/${new Date().getFullYear()}`);
 
-
-        }).map(date => date.getMonth() + 1);
-
-        collection_lodash.filter(bob2['Monthly Adjusted Time Series'], (obj)=>{
-        })
-      res.send(current_year_dividend_months);
-
-      //console.log(bob, current_year_dividend_months);
-      // let bobby = arr.keys().filter((month) => {
-
-      //   console.log(month);
-      //   return new Date(month) > new Date("01/01/2024")
-      // })
-      //console.log(arr);
-      // arr = arr.map((x) => {
-      //   return {
-      //     date: x.priceDate,
-      //     symbol: x.symbol,
-      //     price: x.close,
-      //     returns: (x.close - x.open).toFixed(2)
-      //   }
-      // });
+      res.send(bob2);
     });
 
 
