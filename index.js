@@ -1,7 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const { resolve } = require('path');
-const collection_lodash = require('lodash/collection');
 
 dotenv.config({ path: './.env' });
 
