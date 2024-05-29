@@ -21,38 +21,38 @@ app.get('/', (req, res) => {
   res.sendFile(resolve(__dirname, 'pages/index.html'));
 });
 
+//GET returns the amount of stock needed to achieve amount
 app.get('/amount', (req, res) => {
-  if (!req.query.stock || !req.query.amount) {
+  if (!req.query.stock || !req.query.goal) {
     console.log('error....');
     res.send({
-      message: 'please include both stock and amount inputs.'
+      message: 'please include both stock and goal inputs.'
     });
   } else {
 
     let stock = req.query.stock;
-    //let blob = url + `?${key}&${company_fx}&${symbol(stock)}`;
+    let goal = req.query.goal;
+    let blob = url + `?${key}&${company_fx}&${symbol(stock)}`;
     //console.log(blob);
 
-    // fetch(blob).then(async (res) => {
-    //   let returns = res.body.pipeThrough(new TextDecoderStream()).getReader();
-    //   let arr = [];
+    fetch(blob).then(async (res) => {
+      let returns = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let arr = {};
 
-    //   while (true) {
-    //     const { value, done } = await returns.read();
-    //     if (done) break;
-    //     bob = JSON.parse(value);
-    //   }
+      while (true) {
+        const { value, done } = await returns.read();
+        if (done) break;
+        arr = JSON.parse(value);
+      }
 
-    //   // bob = (x) => {
-    //   //   return {
-    //   //     symbol: x.Symbol,
-    //   //     dividend: x.DividendPerShare,
-    //   //     yield: x.DividendYield,
-    //   //     date:  x.DividendDate,
-    //   //     exDate: x.ExDividendDate
-    //   //   }
-    //   // };
-    // });
+      bob = {
+          symbol: arr.Symbol,
+          dividend: arr.DividendPerShare,
+          yield: arr.DividendYield,
+          date: arr.DividendDate,
+          exDate: arr.ExDividendDate
+        };
+    });
 
     let blob2 = url + `?${key}&${stock_data_fx}&${symbol(stock)}`;
     console.log(blob2);
@@ -85,9 +85,9 @@ app.get('/amount', (req, res) => {
       let dividend_lapse = (dividend_list) => {
         let div_span = 0;
         let b = 1;
-        for (let index = 0; index < array.length - 2; index++) {
-          let prev_div = new Date(array[index]['date']).getMonth() + 1;
-          let post_div = new Date(array[b]['date']).getMonth() + 1;
+        for (let index = 0; index < dividend_list.length - 2; index++) {
+          let prev_div = new Date(dividend_list[index]['date']).getMonth() + 1;
+          let post_div = new Date(dividend_list[b]['date']).getMonth() + 1;
           let span = prev_div - post_div;
 
           if (span == 0) continue;
@@ -101,7 +101,7 @@ app.get('/amount', (req, res) => {
       }
 
       let getPayoutTerm = (lapse_amount) => {
-        switch (gap) {
+        switch (lapse_amount) {
           case 1:
             return 12;
           case 3:
@@ -115,8 +115,12 @@ app.get('/amount', (req, res) => {
 
       let payout = getPayoutTerm(dividend_lapse(current_year_monthly_dividends));
 
-      console.log(company_adjusted_returns);
-      console.log(current_year_monthly_dividends);
+
+      let calculateStockAmount = (stock, amount) => {
+        let result =  amount / stock.dividend;
+        return result;
+      }
+      calculateStockAmount(bob, goal);
 
       res.send(current_year_monthly_dividends);
     });
