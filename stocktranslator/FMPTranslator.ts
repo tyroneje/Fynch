@@ -1,0 +1,1 @@
+class FMPTranslator implements IStockAPITranslator{}
