@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const handlers = require('./requestHandlers.js');
+const handlers = require('../requestHandlers.js');
 
 dotenv.config({ path: './.env' });
 

@@ -3,10 +3,10 @@ import * as dotevnv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 
-dotevnv.config();
+dotevnv.config({path:'./.env'});
 
 const app = express();
-const port = parseInt(process.env.PORT as string);
+const port = 3010;//parseInt(process.env.PORT as string);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
